@@ -1,0 +1,38 @@
+import string
+from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer
+from sklearn.feature_extraction.text import TfidfVectorizer
+from nltk.tokenize import word_tokenize
+
+# Sample query
+query = "Network configuration optimization for 5G base stations!"
+
+# Step 1: Normalize (Lowercase, remove punctuation)
+query = query.lower()  # Convert to lowercase
+query = ''.join([char for char in query if char not in string.punctuation])  # Remove punctuation
+
+# Step 2: Tokenize (split into words)
+query_tokens = word_tokenize(query)
+
+# Step 3: Remove Stopwords
+stop_words = set(stopwords.words('english'))
+query_tokens = [word for word in query_tokens if word not in stop_words]
+
+# Step 4: Stem (or Lemmatize - optional)
+stemmer = PorterStemmer()
+query_tokens = [stemmer.stem(word) for word in query_tokens]
+
+# Step 5: Rebuild query after preprocessing (to maintain consistency with retrievers)
+preprocessed_query = " ".join(query_tokens)
+
+# Optionally: If you're using ChromaDB (embedding model), you might not want to remove all stopwords.
+# For Embedding-based models, you can skip aggressive stopword removal and tokenization.
+print(f"Preprocessed Query: {preprocessed_query}")
+# Assuming you have an EnsembleRetriever that combines TF-IDF and Chroma retrievers
+query = preprocessed_query  # The preprocessed query
+
+results = ensemble_retriever.get_relevant_documents(query)
+
+# Print retrieved results
+for doc in results:
+    print(f"Document: {doc.page_content}\n")
