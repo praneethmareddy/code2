@@ -1,0 +1,25 @@
+from langchain.retrievers import TFIDFRetriever
+from langchain.vectorstores import Chroma
+from langchain.embeddings import HuggingFaceEmbeddings
+from langchain_core.documents import Document
+from langchain.retrievers.ensemble import EnsembleRetriever
+
+# Sample Documents
+docs = [
+    Document(page_content="Network configuration settings for a base station."),
+    Document(page_content="Base station antennas must be configured properly."),
+    Document(page_content="5G network optimization involves tuning parameters."),
+    Document(page_content="NE templates define network elements and their attributes."),
+    Document(page_content="Configuration files store key-value pairs for NE templates."),
+]
+
+# 🔹 TF-IDF Retriever
+tfidf_retriever = TFIDFRetriever.from_documents(docs)
+
+# 🔹 ChromaDB Retriever (Dense Embeddings)
+embedding_model = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+vector_db = Chroma.from_documents(docs, embedding_model, persist_directory="./chroma_db")
+vector_retriever = vector_db.as_retriever(search_kwargs={"k": 3})  # Top 3 results
+
+# 🔹 Combine Both Using EnsembleRetriever
+ensemble_retriever = EnsembleRetriever(retrievers=[tfidf_retriever, vector_retriever], weights=[0.5, 0.5])  # Equal weight
